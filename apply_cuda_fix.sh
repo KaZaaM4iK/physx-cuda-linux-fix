@@ -34,7 +34,12 @@ echo "CUDA noexcept fix applied!"
 
 # === PART 2: Create missing include folder (no sudo) ===
 echo "Creating include/foundation/linux..."
-mkdir -p include/foundation/linux
+mkdir -p \
+  include/foundation/linux\
+  source/Common/src/linux \
+  source/LowLevel/software/include/linux \
+  source/LowLevelDynamics/include/linux \
+  source/LowLevel/common/include/pipeline/linux
 echo "Created: include/foundation/linux"
 
 echo ""
