@@ -47,7 +47,25 @@ mkdir -p \
   source/LowLevelAABB/linux/include\
   source/LowLevelDynamics/include/linux \
   source/LowLevel/common/include/pipeline/linux
-echo "Created: include/foundation/linux"
+echo "Missing folders created."
+
+# === PART 3: Fix printf format in GuBV4Build.cpp (no sudo) ===
+CPP_FILE="source/geomutils/src/mesh/GuBV4Build.cpp"
+
+if [ ! -f "$CPP_FILE" ]; then
+  echo "ERROR: File not found: $CPP_FILE"
+  echo "   Make sure you are running the script from the physx/ directory."
+  exit 1
+fi
+
+# Check if already patched
+if grep -q 'printf("Tree depth: %u\\n"' "$CPP_FILE"; then
+  echo "printf format already fixed — skipping."
+else
+  echo "Fixing printf format in $CPP_FILE..."
+  sed -i 's/printf("Tree depth: %d\\n"/printf("Tree depth: %u\\n"/' "$CPP_FILE"
+  echo "printf fix applied!"
+fi
 
 echo ""
 echo "All fixes applied!"
