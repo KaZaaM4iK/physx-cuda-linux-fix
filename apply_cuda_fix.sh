@@ -50,7 +50,8 @@ mkdir -p \
   source/LowLevelAABB/linux/include\
   source/LowLevelDynamics/include/linux \
   source/LowLevel/common/include/pipeline/linux\
-  source/omnipvd
+  source/omnipvd\
+  source/task/include
 echo "Missing folders created."
 
 # === PART 3: Fix printf format in GuBV4Build.cpp (no sudo) ===
@@ -144,6 +145,42 @@ elif [ "$CUDA_MAJOR_VERSION" -ge 13 ]; then
 else
     echo "Found CUDA version $CUDA_MAJOR_VERSION. Architecture fix not needed."
 fi
+
+# --- PART 6: Fix cuCtxCreate for CUDA 12.5+ (no sudo) ---
+echo "=== PART 6: Fix cuCtxCreate for CUDA 12.5+ ==="
+CPP_FILE3="source/cudamanager/src/CudaContextManager.cpp"
+
+if [ ! -f "$CPP_FILE3" ]; then
+    echo "ERROR: File not found: $CPP_FILE3"
+    echo " Make sure you are running the script from the physx/ directory."
+    exit 1
+fi
+
+# Проверяем, уже ли применён патч
+if grep -q "CUctxCreateParams ctxParams" "$CPP_FILE3"; then
+    echo "cuCtxCreate fix already applied — skipping."
+else
+    echo "Creating backup of $CPP_FILE3..."
+    cp "$CPP_FILE3" "$CPP_FILE3.backup"
+
+    echo "Applying cuCtxCreate fix for CUDA 12.5+..."
+    sed -i '
+        s|status = cuCtxCreate(&mCtx, (unsigned int)flags, mDevHandle);|\
+			CUctxCreateParams ctxParams;\
+			memset(\&ctxParams, 0, sizeof(ctxParams));\
+			status = cuCtxCreate(\&mCtx, \&ctxParams, (unsigned int)flags, mDevHandle);|
+    ' "$CPP_FILE3"
+
+    # Проверка, что замена прошла
+    if grep -q "CUctxCreateParams ctxParams" "$CPP_FILE3"; then
+        echo "cuCtxCreate fix applied successfully!"
+    else
+        echo "ERROR: Failed to apply cuCtxCreate fix!"
+        exit 1
+    fi
+fi
+
+# --- END OF PART 6 ---
 
 echo ""
 echo "All fixes applied!"
