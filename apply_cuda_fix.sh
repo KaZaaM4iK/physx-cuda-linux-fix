@@ -48,7 +48,7 @@ mkdir -p \
   source/LowLevel/software/include/linux \
   source/LowLevelAABB/linux/include\
   source/LowLevelDynamics/include/linux \
-  source/LowLevel/common/include/pipeline/linux
+  source/LowLevel/common/include/pipeline/linux\
   source/omnipvd
 echo "Missing folders created."
 
