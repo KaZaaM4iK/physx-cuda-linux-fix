@@ -48,7 +48,7 @@ mkdir -p \
   source/LowLevel/software/include/linux \
   source/LowLevelAABB/linux/include\
   source/LowLevelDynamics/include/linux \
-  source/LowLevel/common/include/pipeline/linux
+  source/LowLevel/common/include/pipeline/linux\
   source/omnipvd
 echo "Missing folders created."
 
@@ -70,7 +70,51 @@ else
   echo "printf fix applied!"
 fi
 
+# === PART 4: Fix fprintf formats in ExtDelaunayBoundaryInserter.cpp (no sudo) ===
+CPP_FILE2="source/physxextensions/src/tet/ExtDelaunayBoundaryInserter.cpp"
 
+if [ ! -f "$CPP_FILE2" ]; then
+  echo "ERROR: File not found: $CPP_FILE2"
+  echo "   Make sure you are running the script from the physx/ directory."
+  exit 1
+fi
+
+# Check if already patched
+if grep -q '%u vertices' "$CPP_FILE2" && grep -q '%u tetrahedra' "$CPP_FILE2" && grep -q 't %u %u %u %u' "$CPP_FILE2"; then
+  echo "fprintf formats in ExtDelaunayBoundaryInserter.cpp already fixed — skipping."
+else
+  echo "Fixing fprintf formats in $CPP_FILE2..."
+  sed -i '
+    s/fprintf(fp, "# %d vertices\\n"/fprintf(fp, "# %u vertices\\n"/;
+    s/fprintf(fp, "# %d tetrahedra\\n"/fprintf(fp, "# %u tetrahedra\\n"/;
+    s/fprintf(fp, "t %d %d %d %d\\n"/fprintf(fp, "t %u %u %u %u\\n"/g;
+    s/fprintf(fp, "%d %d 0\\n"/fprintf(fp, "%u %u 0\\n"/;
+  ' "$CPP_FILE2"
+  echo "fprintf fixes applied!"
+fi
+
+# === PART 4: Fix fprintf formats in ExtDelaunayBoundaryInserter.cpp (no sudo) ===
+CPP_FILE2="source/physxextensions/src/tet/ExtDelaunayBoundaryInserter.cpp"
+
+if [ ! -f "$CPP_FILE2" ]; then
+  echo "ERROR: File not found: $CPP_FILE2"
+  echo "   Make sure you are running the script from the physx/ directory."
+  exit 1
+fi
+
+# Check if already patched
+if grep -q '%u vertices' "$CPP_FILE2" && grep -q '%u tetrahedra' "$CPP_FILE2" && grep -q 't %u %u %u %u' "$CPP_FILE2"; then
+  echo "fprintf formats in ExtDelaunayBoundaryInserter.cpp already fixed — skipping."
+else
+  echo "Fixing fprintf formats in $CPP_FILE2..."
+  sed -i '
+    s/fprintf(fp, "# %d vertices\\n"/fprintf(fp, "# %u vertices\\n"/;
+    s/fprintf(fp, "# %d tetrahedra\\n"/fprintf(fp, "# %u tetrahedra\\n"/;
+    s/fprintf(fp, "t %d %d %d %d\\n"/fprintf(fp, "t %u %u %u %u\\n"/g;
+    s/fprintf(fp, "%d %d 0\\n"/fprintf(fp, "%u %u 0\\n"/;
+  ' "$CPP_FILE2"
+  echo "fprintf fixes applied!"
+fi
 
 echo ""
 echo "All fixes applied!"
