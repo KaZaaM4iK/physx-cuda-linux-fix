@@ -41,6 +41,7 @@ mkdir -p \
   source/GpuBroadPhase/include\
   source/GpuBroadPhase/src\
   source/lowlevel/common/include/pipeline/linux\
+  source/lowlevel/linux/include\
   source/lowlevel/software/include/linux\
   source/lowleveldynamics/include/linux\
   source/LowLevel/software/include/linux \
