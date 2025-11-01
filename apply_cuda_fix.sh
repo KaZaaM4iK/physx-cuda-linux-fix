@@ -40,6 +40,7 @@ mkdir -p \
   source/Common/src/linux \
   source/GpuBroadPhase/include\
   source/GpuBroadPhase/src\
+  source/immediatemode/include\
   source/lowlevel/common/include/pipeline/linux\
   source/lowlevel/linux/include\
   source/lowlevel/software/include/linux\
@@ -48,6 +49,7 @@ mkdir -p \
   source/LowLevelAABB/linux/include\
   source/LowLevelDynamics/include/linux \
   source/LowLevel/common/include/pipeline/linux
+  source/omnipvd
 echo "Missing folders created."
 
 # === PART 3: Fix printf format in GuBV4Build.cpp (no sudo) ===
