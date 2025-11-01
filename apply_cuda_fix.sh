@@ -36,9 +36,13 @@ echo "CUDA noexcept fix applied!"
 echo "Creating include/foundation/linux..."
 mkdir -p \
   include/foundation/linux\
+  source/common/src/linux\
   source/Common/src/linux \
   source/GpuBroadPhase/include\
   source/GpuBroadPhase/src\
+  source/lowlevel/common/include/pipeline/linux\
+  source/lowlevel/software/include/linux\
+  source/lowleveldynamics/include/linux\
   source/LowLevel/software/include/linux \
   source/LowLevelAABB/linux/include\
   source/LowLevelDynamics/include/linux \
