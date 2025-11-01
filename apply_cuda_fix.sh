@@ -116,6 +116,34 @@ else
   echo "fprintf fixes applied!"
 fi
 
+# --- PART 5: Fix unsupported GPU architecture for CUDA 13+ (no sudo) ---
+echo "Checking nvcc version for compute architecture fix..."
+
+# 1. Get nvcc version output
+NVCC_VERSION_OUTPUT=$(nvcc --version 2>&1)
+
+# 2. Extract the major version number
+CUDA_MAJOR_VERSION=$(echo "$NVCC_VERSION_OUTPUT" | grep -oP 'release \K[0-9]+' | head -1)
+
+CMAKE_GPU_FILE="source/compiler/cmakegpu/CMakeLists.txt"
+
+if [ -z "$CUDA_MAJOR_VERSION" ]; then
+    echo "WARNING: Could not determine CUDA major version. Skipping architecture fix."
+elif [ "$CUDA_MAJOR_VERSION" -ge 13 ]; then
+    echo "Found CUDA version $CUDA_MAJOR_VERSION. Removing unsupported 'compute_70' from CMakeLists.txt."
+    
+    if [ ! -f "$CMAKE_GPU_FILE" ]; then
+        echo "ERROR: CMake GPU file not found at $CMAKE_GPU_FILE"
+        exit 1
+    fi
+    
+    sed -i 's/GENERATE_ARCH_CODE_LIST(SASS "70,/GENERATE_ARCH_CODE_LIST(SASS "/' "$CMAKE_GPU_FILE"
+    
+    echo "Architecture '70' successfully removed for CUDA $CUDA_MAJOR_VERSION."
+else
+    echo "Found CUDA version $CUDA_MAJOR_VERSION. Architecture fix not needed."
+fi
+
 echo ""
 echo "All fixes applied!"
 echo "To revert CUDA changes:"
