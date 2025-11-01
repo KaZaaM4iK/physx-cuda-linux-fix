@@ -37,7 +37,10 @@ echo "Creating include/foundation/linux..."
 mkdir -p \
   include/foundation/linux\
   source/Common/src/linux \
+  source/GpuBroadPhase/include\
+  source/GpuBroadPhase/src\
   source/LowLevel/software/include/linux \
+  source/LowLevelAABB/linux/include\
   source/LowLevelDynamics/include/linux \
   source/LowLevel/common/include/pipeline/linux
 echo "Created: include/foundation/linux"
