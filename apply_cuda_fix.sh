@@ -109,16 +109,15 @@ echo "PhysX 5.6.1 – фиксы (CUDA + snippets)"
 echo "=============================================================="
 
 # ==============================================================
-# PART 7: Универсальный фикс printf/sprintf → %u + опечатки
+# PART 7: Универсальный фикс printf/sprintf → %u + опечатки (ИСПРАВЛЕНО)
 # ==============================================================
-echo "Фиксим printf/sprintf в snippets..."
+echo "Фиксим printf/sprintf в snippets (без %du)..."
 FIXED=0
-
 for src in snippets/*/Snippet*.cpp; do
     [ -f "$src" ] || continue
     CHANGED=0
 
-    # --- 1. Конкретные строки ---
+    # --- 1. Конкретные строки (безопасно) ---
     if grep -q 'visible objects' "$src"; then
         sed -i 's/"%d visible objects\\n"/"%u visible objects\\n"/' "$src" && CHANGED=1
     fi
@@ -155,7 +154,7 @@ for src in snippets/*/Snippet*.cpp; do
         sed -i 's/%du contacts/%u contacts/' "$src" && CHANGED=1
     fi
 
-    # --- 3. SnippetMultiPruners: %d actors / %d: time → %u ---
+    # --- 3. SnippetMultiPruners ---
     if grep -q 'actors\\n"' "$src"; then
         sed -i 's/%d actors/%u actors/' "$src" && CHANGED=1
     fi
@@ -163,21 +162,55 @@ for src in snippets/*/Snippet*.cpp; do
         sed -i 's/%d: time/%u: time/' "$src" && CHANGED=1
     fi
 
-    # --- 5. SnippetProfilerConverter: %d.%d → %u.%u только в строках с versionInfo.major ---
+    # --- 4. Версия ---
     if grep -q 'It is version %d.%d' "$src"; then
         sed -i 's/It is version %d\.%d/It is version %u.%u/' "$src" && CHANGED=1
     fi
 
-    # --- 4. Агрессивный: любой %d перед PxU32 / getNb* / size() ---
-    if grep -Eq '%d.*(size\(\)|getNb|P[xX]U32)' "$src"; then
-        sed -Ei 's/(%d)([^%]*)(size\(\)|getNb[^)]*\(\)|P[xX]U32\([^)]*\))/\1u\2\3/g' "$src"
+    # --- 5. УМНЫЙ АГРЕССИВНЫЙ: %d + (size() / getNb* / PxU32) → %u ---
+    if grep -Eq '%d.*(size\(\)|getNb[^)]*\(\)|P[xX]U32\([^)]*\))' "$src"; then
+        # Заменяем только %d, который идёт ПЕРЕД нужным вызовом
+        sed -Ei 's/(%d)(\s*,\s*)(size\(\)|getNb[^)]*\(\)|P[xX]U32\([^)]*\))/\%u\2\3/g' "$src"
         CHANGED=1
     fi
 
-    (( CHANGED )) && (( FIXED++ )) && echo "  → $src"
-done
+    # --- 6. SnippetContactReportCCD: %d contact points → %u ---
+    if grep -q 'contact points\\n.*PxU32.*size()' "$src"; then
+        sed -i 's/printf("%d contact points\\n"/printf("%u contact points\\n"/' "$src" && CHANGED=1
+    fi
 
+    # --- 7. SnippetImmediateArticulation: Narrow-phase contacts → %u ---
+    if grep -q 'Narrow-phase: %d contacts' "$src"; then
+        sed -i 's/"Narrow-phase: %d contacts/"Narrow-phase: %u contacts/' "$src" && CHANGED=1
+    fi
+
+    (( CHANGED )) && (( FIXED++ )) && echo " → $src"
+done
 (( FIXED )) && echo "Исправлено $FIXED файлов." || echo "snippets уже в порядке."
+
+# ==============================================================
+# PART 8: Замена старой libGL из Packman на системную (Mesa)
+# ==============================================================
+echo "Заменяем старую libGL из Packman на системную..."
+PACKMAN_GL="/home/kazaam4ik/.cache/packman/chk/opengl-linux/2017.5.19.1/lib64/libGL.so"
+SYSTEM_GL="/usr/lib/x86_64-linux-gnu/libGL.so.1"
+
+if [ -f "$PACKMAN_GL" ]; then
+    # Создаём бэкап Packman libGL
+    sudo cp "$PACKMAN_GL" "$PACKMAN_GL.backup"
+    
+    # Копируем системную libGL в Packman (override)
+    sudo cp "$SYSTEM_GL" "$PACKMAN_GL"
+    
+    # Если нужно, обновляем symlink'и
+    if [ ! -L "$PACKMAN_GL.1" ]; then
+        sudo ln -sf "$SYSTEM_GL" "$PACKMAN_GL.1"
+    fi
+    
+    echo "libGL из Packman заменена на системную (Mesa)."
+else
+    echo "Packman libGL не найдена — пропускаем."
+fi
 
 # ==============================================================
 # Финал
