@@ -180,22 +180,20 @@ else
     fi
 fi
 
-# --- PART 7: Fix printf format in SnippetContactModification.cpp ---
-echo "=== PART 7: Fix printf format in SnippetContactModification.cpp ==="
-SNIPPET_FILE="snippets/snippetcontactmodification/SnippetContactModification.cpp"
-if [ ! -f "$SNIPPET_FILE" ]; then
-    echo "ERROR: File not found: $SNIPPET_FILE"
-    echo " Make sure you are running the script from the physx/ directory."
-    exit 1
-fi
-
-# Проверяем, уже ли применён патч
-if grep -q '%u contact reports' "$SNIPPET_FILE"; then
-    echo "printf format in SnippetContactModification.cpp already fixed — skipping."
+# --- PART 7: Fix printf formats in ALL contact snippets (bulk) ---
+echo "=== PART 7: Bulk fix printf formats in contact snippets ==="
+FIXED_COUNT=0
+for file in snippets/snippetcontact*/SnippetContact*.cpp; do
+    if [ -f "$file" ] && grep -q '%d contact reports' "$file"; then
+        echo "Fixing $file..."
+        sed -i 's/printf("%d contact reports\\n"/printf("%u contact reports\\n"/g' "$file"
+        FIXED_COUNT=$((FIXED_COUNT + 1))
+    fi
+done
+if [ "$FIXED_COUNT" -gt 0 ]; then
+    echo "Fixed $FIXED_COUNT contact snippet files!"
 else
-    echo "Fixing printf format in $SNIPPET_FILE..."
-    sed -i 's/printf("%d contact reports\\n"/printf("%u contact reports\\n"/' "$SNIPPET_FILE"
-    echo "printf fix applied!"
+    echo "All contact snippets already fixed."
 fi
 
 echo ""
